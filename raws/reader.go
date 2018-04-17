@@ -62,6 +62,16 @@ func (r *Reader) init() error {
 	return nil
 }
 
+func (r *Reader) Name() (string, error) {
+	err := r.init()
+	return r.name, err
+}
+
+func (r *Reader) ObjectType() (string, error) {
+	err := r.init()
+	return r.object, err
+}
+
 func (r *Reader) discardComments() error {
 	for {
 		ch, _, err := r.r.ReadRune()

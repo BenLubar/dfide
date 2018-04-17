@@ -1,0 +1,47 @@
+.tab-container {
+	display: flex;
+	flex-direction: column;
+}
+
+.tab-container>.tabs {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	margin: 0;
+	padding: 0;
+}
+
+.tab-container>.tabs>li {
+	display: block;
+	flex-grow: 1;
+}
+
+.tab-container>.tabs>li>label {
+	display: block;
+	width: 100%;
+	padding: 0.25em;
+	box-sizing: border-box;
+	font: 1em/1 sans-serif;
+	color: #888;
+}
+
+.tab-container>.tabs>li>label:not(.active) {
+	background-color: #ccc;
+}
+
+.tab-container>.tabs>li>label.active, .tab-container>.tabs>li>label:hover {
+	color: #000;
+}
+
+.tab-container>.content {
+	display: flex;
+	flex-grow: 1;
+}
+
+.tab-container>.content>input:not(:checked)+* {
+	display: none;
+}
+
+.tab-container>.content>* {
+	flex-grow: 1;
+}

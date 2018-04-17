@@ -4,3 +4,15 @@ addons:
   apt:
     packages:
       - libgtk-3-dev
+before_deploy:
+  - go get -u github.com/gopherjs/gopherjs
+  - gopherjs build -m -o dfide.js
+  - head -n -1 dfide.js > webroot/dfide.js
+deploy:
+  provider: pages
+  local-dir: webroot
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN
+  verbose: true
+  on:
+    branch: master

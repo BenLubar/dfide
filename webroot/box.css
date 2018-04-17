@@ -1,0 +1,40 @@
+.box {
+	display: flex;
+	background-color: inherit;
+}
+
+.box.horizontal {
+	flex-direction: row;
+}
+
+.box.vertical {
+	flex-direction: column;
+}
+
+.box.horizontal.scroll-overflow {
+	overflow-x: auto;
+}
+
+.box.horizontal.scroll-always {
+	overflow-x: scroll;
+}
+
+.box.vertical.scroll-overflow {
+	overflow-y: auto;
+}
+
+.box.vertical.scroll-always {
+	overflow-y: scroll;
+}
+
+.box.horizontal.padded>:not(:first-child) {
+	margin-left: 1em;
+}
+
+.box.vertical.padded>:not(:first-child) {
+	margin-top: 1em;
+}
+
+.box>.stretchy {
+	flex-grow: 1;
+}
