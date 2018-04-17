@@ -115,6 +115,11 @@ func getTypeDescriptionLocked(t reflect.Type) *typeDescription {
 		f := t.Field(i)
 		st := parseStructTag(f.Tag)
 		if st != nil {
+			if st.Char && f.Type.Kind() != reflect.Int32 &&
+				(f.Type.Kind() != reflect.Slice || f.Type.Elem().Kind() != reflect.Int32) {
+				panic("raws: invalid struct tag: char flag can only be used on rune or []rune")
+			}
+
 			d.fields = append(d.fields, f)
 			d.tags = append(d.tags, *st)
 		}

@@ -1,6 +1,7 @@
 package raws // import "github.com/BenLubar/dfide/raws"
 
 import (
+	"encoding"
 	"fmt"
 	"io"
 	"reflect"
@@ -112,6 +113,10 @@ func (r *Reader) parseValue(v reflect.Value, startTag []string) error {
 func (r *Reader) parseField(v reflect.Value, t structTag, value string) error {
 	v = ensure(v)
 
+	if um, ok := v.Addr().Interface().(encoding.TextUnmarshaler); ok {
+		return um.UnmarshalText([]byte(value))
+	}
+
 	switch v.Kind() {
 	case reflect.String:
 		v.SetString(value)
@@ -121,21 +126,14 @@ func (r *Reader) parseField(v reflect.Value, t structTag, value string) error {
 			c, err := ToChar(value)
 			v.SetInt(int64(c))
 			return err
-		} else {
-			n, err := strconv.ParseInt(value, 10, v.Type().Bits())
-			v.SetInt(n)
-			return err
 		}
+		n, err := strconv.ParseInt(value, 10, v.Type().Bits())
+		v.SetInt(n)
+		return err
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		if t.Char {
-			c, err := ToChar(value)
-			v.SetUint(uint64(c))
-			return err
-		} else {
-			n, err := strconv.ParseUint(value, 10, v.Type().Bits())
-			v.SetUint(n)
-			return err
-		}
+		n, err := strconv.ParseUint(value, 10, v.Type().Bits())
+		v.SetUint(n)
+		return err
 	}
 	panic("raws: unhandled type: " + v.Kind().String())
 }
