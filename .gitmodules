@@ -1,0 +1,3 @@
+[submodule "raws/testdata"]
+	path = raws/testdata
+	url = ../raws.git
