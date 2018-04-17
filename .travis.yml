@@ -1,0 +1,6 @@
+sudo: false
+language: go
+addons:
+  apt:
+    packages:
+      - libgtk-3-dev
