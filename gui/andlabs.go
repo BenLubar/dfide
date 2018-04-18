@@ -2,7 +2,11 @@
 
 package gui // import "github.com/BenLubar/dfide/gui"
 
-import "github.com/andlabs/ui"
+import (
+	"log"
+
+	"github.com/andlabs/ui"
+)
 
 func main(f func()) error {
 	return ui.Main(f)
@@ -30,6 +34,10 @@ func (w *uiWindow) Show() {
 
 func (w *uiWindow) SetMargined(margined bool) {
 	w.win.SetMargined(margined)
+}
+
+func (w *uiWindow) SetTitle(title string) {
+	w.win.SetTitle(title)
 }
 
 func (w *uiWindow) UIWindow() *ui.Window { return w.win }
@@ -70,6 +78,18 @@ func (t *uiTab) Append(name string, child Control) {
 	t.tab.Append(name, child.control())
 }
 
+func (t *uiTab) InsertAt(name string, n int, child Control) {
+	t.tab.InsertAt(name, n, child.control())
+}
+
+func (t *uiTab) RemoveAt(n int) {
+	t.tab.Delete(n)
+}
+
+func (t *uiTab) SetMargined(n int, margined bool) {
+	t.tab.SetMargined(n, margined)
+}
+
 func (t *uiTab) control() control {
 	return t.tab
 }
@@ -99,7 +119,8 @@ func (b *uiBox) SetPadded(padded bool) {
 }
 
 func (b *uiBox) SetScrollable(scrollable Scrollable) {
-	panic("gui: TODO: https://github.com/andlabs/libui/issues/178")
+	// TODO: https://github.com/andlabs/libui/issues/178
+	log.Println("ignoring call to uiBox.SetScrollable due to https://github.com/andlabs/libui/issues/178")
 }
 
 func (b *uiBox) control() control {

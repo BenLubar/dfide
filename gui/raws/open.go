@@ -2,6 +2,7 @@ package raws // import "github.com/BenLubar/dfide/gui/raws"
 
 import (
 	"bytes"
+	"strings"
 
 	"golang.org/x/text/encoding/charmap"
 
@@ -19,7 +20,12 @@ func OpenFile(f *file.File) {
 
 	r := raws.NewReader(bytes.NewReader(contents))
 
-	showEditor(getVisualEditor(r), f, contents)
+	name, err := r.Name()
+	if err != nil {
+		name = strings.TrimSuffix(f.Name, ".txt")
+	}
+
+	showEditor(getVisualEditor(r), name, contents)
 }
 
 func getVisualEditor(r *raws.Reader) visualEditor {

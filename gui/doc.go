@@ -16,6 +16,7 @@ type Window interface {
 	SetChild(Control)
 	Show()
 	SetMargined(bool)
+	SetTitle(string)
 }
 
 func NewWindow(title string, width, height int) Window {
@@ -44,6 +45,9 @@ func NewButton(text string) Button {
 type Tab interface {
 	Control
 	Append(string, Control)
+	InsertAt(string, int, Control)
+	RemoveAt(int)
+	SetMargined(int, bool)
 }
 
 func NewTab() Tab {
@@ -91,4 +95,8 @@ type Entry interface {
 
 func NewEntry() Entry {
 	return newEntry()
+}
+
+func NewMultiLineEntry() Entry {
+	return newMultiLineEntry()
 }

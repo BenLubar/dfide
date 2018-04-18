@@ -69,7 +69,7 @@ func (w *jsWindow) init() {
 	w.win.AddEventListener("mousemove", false, func(event dom.Event) {
 		e := event.(*dom.MouseEvent)
 		if !e.Target().IsEqualNode(w.win) {
-			w.win.Style().Delete("cursor")
+			w.win.Style().RemoveProperty("cursor")
 			return
 		}
 		offsetX := e.Get("offsetX").Int()
@@ -108,7 +108,7 @@ func (w *jsWindow) init() {
 		w.startMouseAction(resize, e.ClientX, e.ClientY)
 	})
 	w.win.AddEventListener("click", false, func(event dom.Event) {
-		if doc.ActiveElement().CompareDocumentPosition(w.win)&dom.DocumentPositionContainedBy == 0 {
+		if doc.ActiveElement().CompareDocumentPosition(w.win)&dom.DocumentPositionContains == 0 {
 			w.title.Focus()
 		}
 	})
@@ -117,7 +117,7 @@ func (w *jsWindow) init() {
 		w.startMouseAction("move", e.ClientX, e.ClientY)
 	})
 	w.close.AddEventListener("click", false, func(dom.Event) {
-		js.Debugger()
+		doc.Body().RemoveChild(w.win)
 	})
 }
 
@@ -211,7 +211,8 @@ func (w *jsWindow) SetChild(c Control) {
 
 func (w *jsWindow) Show() {
 	w.win.Class().Remove("hidden")
-	w.title.Focus()
+	// delay so click handlers don't make this window a pop-under
+	dom.GetWindow().SetTimeout(w.title.Focus, 1)
 }
 
 func (w *jsWindow) SetMargined(margined bool) {
@@ -220,6 +221,10 @@ func (w *jsWindow) SetMargined(margined bool) {
 	} else {
 		w.win.Class().Remove("margined")
 	}
+}
+
+func (w *jsWindow) SetTitle(title string) {
+	w.title.SetTextContent(title)
 }
 
 type control dom.HTMLElement
@@ -272,9 +277,26 @@ type jsTab struct {
 	form    *dom.HTMLFormElement
 	tabs    *dom.HTMLUListElement
 	content *dom.HTMLDivElement
+	cache   []jsTabCache
+}
+
+type jsTabCache struct {
+	li      *dom.HTMLLIElement
+	label   *dom.HTMLLabelElement
+	radio   *dom.HTMLInputElement
+	control control
 }
 
 func (t *jsTab) Append(name string, child Control) {
+	t.InsertAt(name, len(t.cache), child)
+}
+
+func (t *jsTab) InsertAt(name string, n int, child Control) {
+	var before jsTabCache
+	if n != len(t.cache) {
+		before = t.cache[n]
+	}
+
 	id := fmt.Sprintf("tab%d", tabIndex)
 	tabIndex++
 
@@ -284,7 +306,11 @@ func (t *jsTab) Append(name string, child Control) {
 	label.For = id
 	label.SetTabIndex(0)
 	li.AppendChild(label)
-	t.tabs.AppendChild(li)
+	if before.li != nil {
+		t.tabs.InsertBefore(li, before.li)
+	} else {
+		t.tabs.AppendChild(li)
+	}
 
 	radio := doc.CreateElement("input").(*dom.HTMLInputElement)
 	radio.Class().Add("hidden")
@@ -301,9 +327,59 @@ func (t *jsTab) Append(name string, child Control) {
 		label.Class().Add("active")
 		radio.Checked = true
 	}
-	t.content.AppendChild(radio)
+	if before.radio != nil {
+		t.content.InsertBefore(radio, before.radio)
+	} else {
+		t.content.AppendChild(radio)
+	}
 
-	t.content.AppendChild(child.control())
+	control := child.control()
+	if before.radio != nil {
+		t.content.InsertBefore(control, before.radio)
+	} else {
+		t.content.AppendChild(control)
+	}
+
+	cache := jsTabCache{
+		li:      li,
+		label:   label,
+		radio:   radio,
+		control: control,
+	}
+	if n == len(t.cache) {
+		t.cache = append(t.cache, cache)
+	} else {
+		t.cache = append(t.cache, jsTabCache{})
+		copy(t.cache[n+1:], t.cache[n:])
+		t.cache[n] = cache
+	}
+}
+
+func (t *jsTab) RemoveAt(n int) {
+	removed := t.cache[n]
+	t.cache = append(t.cache[:n], t.cache[n+1:]...)
+
+	t.tabs.RemoveChild(removed.li)
+	t.content.RemoveChild(removed.radio)
+	t.content.RemoveChild(removed.control)
+
+	if removed.radio.Checked {
+		if n < len(t.cache) {
+			t.cache[n].label.Click()
+		} else if len(t.cache) != 0 {
+			t.cache[len(t.cache)-1].label.Click()
+		}
+	}
+
+	removed.control.Class().Remove("margined")
+}
+
+func (t *jsTab) SetMargined(n int, margined bool) {
+	if margined {
+		t.cache[n].control.Class().Add("margined")
+	} else {
+		t.cache[n].control.Class().Remove("margined")
+	}
 }
 
 func (t *jsTab) control() control {
@@ -319,14 +395,19 @@ func newVerticalBox() *jsBox {
 }
 
 func newJSBox(direction string) *jsBox {
+	wrapper := doc.CreateElement("div").(*dom.HTMLDivElement)
+	wrapper.Class().Add(direction)
+	wrapper.Class().Add("box-wrapper")
 	box := doc.CreateElement("div").(*dom.HTMLDivElement)
 	box.Class().Add(direction)
 	box.Class().Add("box")
-	return &jsBox{box: box}
+	wrapper.AppendChild(box)
+	return &jsBox{wrapper: wrapper, box: box}
 }
 
 type jsBox struct {
-	box *dom.HTMLDivElement
+	wrapper *dom.HTMLDivElement
+	box     *dom.HTMLDivElement
 }
 
 func (b *jsBox) Append(child Control, stretchy bool) {
@@ -352,20 +433,20 @@ func (b *jsBox) SetPadded(padded bool) {
 }
 
 func (b *jsBox) SetScrollable(scrollable Scrollable) {
-	b.box.Class().Remove("scroll-overflow")
-	b.box.Class().Remove("scroll-always")
+	b.wrapper.Class().Remove("scroll-overflow")
+	b.wrapper.Class().Remove("scroll-always")
 	switch scrollable {
 	case ScrollableNever:
 		break
 	case ScrollableOverflow:
-		b.box.Class().Add("scroll-overflow")
+		b.wrapper.Class().Add("scroll-overflow")
 	case ScrollableAlways:
-		b.box.Class().Add("scroll-always")
+		b.wrapper.Class().Add("scroll-always")
 	}
 }
 
 func (b *jsBox) control() control {
-	return b.box
+	return b.wrapper
 }
 
 func newLabel(text string) *jsLabel {
@@ -411,10 +492,45 @@ func (e *jsEntry) OnChange(f func()) {
 		lastValue = e.input.Value
 		f()
 	}
-	e.input.AddEventListener("input", false, listener)
+	//e.input.AddEventListener("input", false, listener)
 	e.input.AddEventListener("change", false, listener)
 }
 
 func (e *jsEntry) control() control {
 	return e.input
+}
+
+func newMultiLineEntry() *jsMultiLineEntry {
+	textarea := doc.CreateElement("textarea").(*dom.HTMLTextAreaElement)
+	textarea.Class().Add("multiline-entry")
+	return &jsMultiLineEntry{textarea: textarea}
+}
+
+type jsMultiLineEntry struct {
+	textarea *dom.HTMLTextAreaElement
+}
+
+func (e *jsMultiLineEntry) Text() string {
+	return e.textarea.Value
+}
+
+func (e *jsMultiLineEntry) SetText(text string) {
+	e.textarea.Value = text
+}
+
+func (e *jsMultiLineEntry) OnChange(f func()) {
+	lastValue := e.textarea.Value
+	listener := func(dom.Event) {
+		if e.textarea.Value == lastValue {
+			return
+		}
+		lastValue = e.textarea.Value
+		f()
+	}
+	//e.textarea.AddEventListener("input", false, listener)
+	e.textarea.AddEventListener("change", false, listener)
+}
+
+func (e *jsMultiLineEntry) control() control {
+	return e.textarea
 }

@@ -3,6 +3,7 @@ package language_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/BenLubar/dfide/raws"
@@ -42,5 +43,22 @@ func TestLanguage(t *testing.T) {
 			}
 			// TODO: check contents of l
 		})
+	}
+}
+
+func TestEmpty(t *testing.T) {
+	t.Parallel()
+
+	r := raws.NewReader(strings.NewReader("language_empty\n\n[OBJECT:LANGUAGE]\n"))
+
+	var l []language.Tag
+	if err := r.ParseAll(&l); err != nil {
+		t.Error(err)
+	}
+	if len(l) != 0 {
+		t.Errorf("Expected language raws to be empty, but it contains %d entries.", len(l))
+		for i, tag := range l {
+			t.Errorf("%d: %#v %#v %#v", i, tag.Symbol, tag.Translation, tag.Word)
+		}
 	}
 }

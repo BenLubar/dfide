@@ -9,12 +9,17 @@ noscript {
 	font: 2em sans-serif;
 }
 
-html, body {
+html {
 	height: 100%;
 	margin: 0;
 	background-color: #333;
 	color: #fff;
 	overflow: hidden;
+}
+
+body {
+	height: 0;
+	margin: 0;
 }
 
 @keyframes loading-shadow {
@@ -38,3 +43,7 @@ html, body {
 	z-index: 10000;
 }
 
+.label {
+	font: 1em/1.5 sans-serif;
+	display: block;
+}

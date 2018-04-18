@@ -33,23 +33,21 @@ func (r *Reader) ParseValue(v reflect.Value) error {
 		return err
 	}
 
-	v = ensure(v)
-
-	if desc := getTypeDescription(v.Type()); desc.union {
-		for i, t := range desc.tags {
-			if t.Name[0].String == tag[0] {
-				return r.parseValue(v.FieldByIndex(desc.fields[i].Index), tag)
-			}
-		}
-		return fmt.Errorf("raws: no match for object type: %q", tag[0])
-	}
-
 	return r.parseValue(v, tag)
 }
 
 func (r *Reader) parseValue(v reflect.Value, startTag []string) error {
 	v = ensure(v)
 	desc := getTypeDescription(v.Type())
+
+	if desc.union {
+		for i, t := range desc.tags {
+			if t.Name[0].String == startTag[0] {
+				return r.parseValue(v.FieldByIndex(desc.fields[i].Index), startTag)
+			}
+		}
+		return fmt.Errorf("raws: no match for object type: %q", startTag[0])
+	}
 
 	for i, t := range desc.tags {
 		if len(t.Name) == 1 && t.Name[0].String == "" {
@@ -66,6 +64,9 @@ func (r *Reader) parseValue(v reflect.Value, startTag []string) error {
 	for {
 		tag, err := r.nextTag()
 		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
 			return err
 		}
 
@@ -154,7 +155,6 @@ func (r *Reader) ParseAllValue(v reflect.Value) error {
 		if err := r.ParseValue(e); err == nil {
 			v.Set(reflect.Append(v, e))
 		} else if err == io.EOF {
-			v.Set(reflect.Append(v, e))
 			return nil
 		} else {
 			return err

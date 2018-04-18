@@ -4,6 +4,7 @@ package file // import "github.com/BenLubar/dfide/gui/file"
 
 import (
 	"io/ioutil"
+	"log"
 	"mime"
 	"os"
 	"path/filepath"
@@ -28,11 +29,13 @@ func open(w gui.Window, f func(*File), accept ...string) {
 
 	fi, err := os.Stat(name)
 	if err != nil {
+		log.Println(err)
 		return
 	}
 
 	content, err := ioutil.ReadFile(name)
 	if err != nil {
+		log.Println(err)
 		return
 	}
 
@@ -49,6 +52,7 @@ func save(w gui.Window, f *File) {
 
 	err := ioutil.WriteFile(name, f.Contents, 0644)
 	if err != nil {
+		log.Println(err)
 		return
 	}
 }

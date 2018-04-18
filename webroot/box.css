@@ -1,29 +1,30 @@
 .box {
 	display: flex;
-	background-color: inherit;
 }
 
 .box.horizontal {
 	flex-direction: row;
+	max-width: 100%;
 }
 
 .box.vertical {
 	flex-direction: column;
+	max-height: 100%;
 }
 
-.box.horizontal.scroll-overflow {
+.box-wrapper.horizontal.scroll-overflow {
 	overflow-x: auto;
 }
 
-.box.horizontal.scroll-always {
+.box-wrapper.horizontal.scroll-always {
 	overflow-x: scroll;
 }
 
-.box.vertical.scroll-overflow {
+.box-wrapper.vertical.scroll-overflow {
 	overflow-y: auto;
 }
 
-.box.vertical.scroll-always {
+.box-wrapper.vertical.scroll-always {
 	overflow-y: scroll;
 }
 
@@ -33,6 +34,10 @@
 
 .box.vertical.padded>:not(:first-child) {
 	margin-top: 1em;
+}
+
+.box>:not(.stretchy) {
+	flex-shrink: 0;
 }
 
 .box>.stretchy {

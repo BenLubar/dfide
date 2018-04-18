@@ -120,6 +120,10 @@ func getTypeDescriptionLocked(t reflect.Type) *typeDescription {
 				panic("raws: invalid struct tag: char flag can only be used on rune or []rune")
 			}
 
+			if st.Union && f.Type.Kind() != reflect.Ptr {
+				panic("raws: invalid struct tag: union flag can only be used on pointer")
+			}
+
 			d.fields = append(d.fields, f)
 			d.tags = append(d.tags, *st)
 		}
