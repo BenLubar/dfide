@@ -164,3 +164,9 @@ func (e *uiEntry) OnChange(f func()) {
 func (e *uiEntry) control() control {
 	return e.entry
 }
+
+func newMultiLineEntry() *uiEntry {
+	// TODO: https://github.com/andlabs/ui/issues/277
+	log.Println("returning single-line Entry from newMultiLineEntry due to https://github.com/andlabs/ui/issues/277")
+	return &uiEntry{entry: ui.NewEntry()}
+}
