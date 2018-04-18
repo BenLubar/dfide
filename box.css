@@ -1,0 +1,45 @@
+.box {
+	display: flex;
+}
+
+.box.horizontal {
+	flex-direction: row;
+	max-width: 100%;
+}
+
+.box.vertical {
+	flex-direction: column;
+	max-height: 100%;
+}
+
+.box-wrapper.horizontal.scroll-overflow {
+	overflow-x: auto;
+}
+
+.box-wrapper.horizontal.scroll-always {
+	overflow-x: scroll;
+}
+
+.box-wrapper.vertical.scroll-overflow {
+	overflow-y: auto;
+}
+
+.box-wrapper.vertical.scroll-always {
+	overflow-y: scroll;
+}
+
+.box.horizontal.padded>:not(:first-child) {
+	margin-left: 1em;
+}
+
+.box.vertical.padded>:not(:first-child) {
+	margin-top: 1em;
+}
+
+.box>:not(.stretchy) {
+	flex-shrink: 0;
+}
+
+.box>.stretchy {
+	flex-grow: 1;
+}

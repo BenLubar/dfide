@@ -1,0 +1,49 @@
+.hidden {
+	display: none;
+}
+
+noscript {
+	background-color: #800;
+	color: #fff;
+	padding: 0.5em;
+	font: 2em sans-serif;
+}
+
+html {
+	height: 100%;
+	margin: 0;
+	background-color: #333;
+	color: #fff;
+	overflow: hidden;
+}
+
+body {
+	height: 0;
+	margin: 0;
+}
+
+@keyframes loading-shadow {
+	0%, 100% {
+		text-shadow: 0 0 1em #000;
+	}
+	50% {
+		text-shadow: 0 0 0.1em #000;
+	}
+}
+
+.loading {
+	position: absolute;
+	text-align: center;
+	width: 100%;
+	font: 4em/100vh sans-serif;
+	color: #777;
+	margin: 0;
+	pointer-events: none;
+	animation: loading-shadow 2s infinite;
+	z-index: 10000;
+}
+
+.label {
+	font: 1em/1.5 sans-serif;
+	display: block;
+}
